@@ -58,7 +58,7 @@
    "provides" : {
       "Mojo::Promise::Role::Get" : {
          "file" : "lib/Mojo/Promise/Role/Get.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       }
    },
    "release_status" : "stable",
@@ -74,7 +74,7 @@
       },
       "x_IRC" : "irc://irc.freenode.net/#mojo"
    },
-   "version" : "v0.1.0",
+   "version" : "v0.1.1",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.028000"
@@ -268,7 +268,7 @@
                   "branch" : null,
                   "changelog" : "Changes",
                   "signed" : 0,
-                  "tag" : "v0.1.0",
+                  "tag" : "v0.1.1",
                   "tag_format" : "%v",
                   "tag_message" : "%v"
                },

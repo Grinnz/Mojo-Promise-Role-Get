@@ -13,7 +13,7 @@ sub get {
   my (@result, $rejected);
   $self->then(sub { @result = @_ }, sub { $rejected = 1; @result = @_ })->wait;
   if ($rejected) {
-    my $reason = $result[0];
+    my $reason = $result[0] // 'Promise was rejected';
     die $reason if ref $reason or $reason =~ m/\n\z/;
     Carp::croak $reason;
   }

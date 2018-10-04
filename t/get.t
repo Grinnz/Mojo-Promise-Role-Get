@@ -12,9 +12,12 @@ my $class = Mojo::Promise->with_roles('Mojo::Promise::Role::Get');
 
 is_deeply [$class->new->resolve('success')->get], ['success'], 'already resolved promise';
 is_deeply [$class->new->resolve(1..10)->get], [1..10], 'multiple results';
+is_deeply [$class->new->resolve->get], [], 'no results';
 is $class->new->resolve(1..10)->get, 1, 'first result in scalar context';
 ok !eval { $class->new->reject('failure')->get; 1 }, 'already rejected promise';
 like $@, qr/failure/, 'right exception message';
+ok !eval { $class->new->reject->get; 1 }, 'no rejection reason';
+like $@, qr/Promise was rejected/, 'right exception message';
 
 my $p = $class->new;
 my $t = Mojo::IOLoop->timer(0.01 => sub { $p->resolve('success') });
