@@ -3,7 +3,7 @@ package Mojo::Promise::Role::Get;
 use Carp ();
 use Role::Tiny;
 
-our $VERSION = 'v0.1.0';
+our $VERSION = 'v0.1.1';
 
 requires qw(ioloop then wait);
 
