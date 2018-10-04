@@ -10,14 +10,14 @@ requires qw(ioloop then wait);
 sub get {
   my ($self) = @_;
   Carp::croak "'get' cannot be called when the event loop is running" if $self->ioloop->is_running;
-  my (@result, $is_error);
-  $self->then(sub { @result = @_ }, sub { $is_error = 1; @result = @_ })->wait;
-  if ($is_error) {
-    my $exception = $result[0];
-    Carp::croak $exception unless ref $exception or $exception =~ m/\n$/;
-    die $exception;
+  my (@result, $rejected);
+  $self->then(sub { @result = @_ }, sub { $rejected = 1; @result = @_ })->wait;
+  if ($rejected) {
+    my $reason = $result[0];
+    die $reason if ref $reason or $reason =~ m/\n\z/;
+    Carp::croak $reason;
   }
-  return @result[0..$#result]; # be slightly more sensible in scalar context
+  return wantarray ? @result : $result[0];
 }
 
 1;
@@ -34,16 +34,18 @@ Mojo::Promise::Role::Get - Wait for the results of a Mojo::Promise
   my $ua = Mojo::UserAgent->new;
 
   # long way of writing $ua->get('http://example.com')
-  my ($tx) = $ua->get_p('http://example.com')->with_roles('+Get')->get;
+  my $tx = $ua->get_p('http://example.com')->with_roles('+Get')->get;
 
   # wait for multiple requests at once
-  my @txs = map { $_->[0] } Mojo::Promise->all($ua->get_p('http://example.com'),
-    $ua->get_p('https://www.google.com'))->with_roles('+Get')->get;
+  my @txs = map { $_->[0] } Mojo::Promise->all(
+    $ua->get_p('http://example.com'),
+    $ua->get_p('https://www.google.com'),
+  )->with_roles('+Get')->get;
 
   # request with exception on timeout
   my $timeout = Mojo::Promise->new;
   Mojo::IOLoop->timer(1 => sub { $timeout->reject('Timed out!') });
-  my ($tx) = Mojo::Promise->race($ua->get_p('http://example.com'), $timeout)
+  my $tx = Mojo::Promise->race($ua->get_p('http://example.com'), $timeout)
     ->with_roles('Mojo::Promise::Role::Get')->get;
 
 =head1 DESCRIPTION
@@ -58,13 +60,13 @@ L<Mojo::Promise::Role::Get> composes the following methods.
 
 =head2 get
 
-  my ($result) = $promise->get;
   my @results = $promise->get;
+  my $first_result = $promise->get;
 
 Blocks until the promise resolves or is rejected. If it is fulfilled, the
-results are returned as a list. The return value is not guaranteed to be
-suitable in scalar context. If it is rejected, the rejection reason is thrown
-as an exception.
+results are returned. In scalar context the first value is returned. If the
+promise is rejected, the (first value of the) rejection reason is thrown as an
+exception.
 
 An exception is thrown if the L<Mojo::Promise/"ioloop"> is running, to prevent
 recursing into the event reactor.

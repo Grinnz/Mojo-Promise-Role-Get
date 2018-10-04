@@ -4,12 +4,15 @@ use Mojo::IOLoop;
 use Mojo::Promise;
 use Test::More;
 
-sub _timeout { Mojo::IOLoop->timer(1 => sub { Mojo::IOLoop->stop }) }
+BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
+
+sub _timeout { ($_[0] || Mojo::IOLoop->singleton)->timer(1 => sub { Mojo::IOLoop->stop }) }
 
 my $class = Mojo::Promise->with_roles('Mojo::Promise::Role::Get');
 
 is_deeply [$class->new->resolve('success')->get], ['success'], 'already resolved promise';
 is_deeply [$class->new->resolve(1..10)->get], [1..10], 'multiple results';
+is $class->new->resolve(1..10)->get, 1, 'first result in scalar context';
 ok !eval { $class->new->reject('failure')->get; 1 }, 'already rejected promise';
 like $@, qr/failure/, 'right exception message';
 
@@ -59,14 +62,32 @@ ok !eval { $p2->get; 1 }, 'remaining timer rejected';
 like $@, qr/reject 2/, 'right exception message';
 Mojo::IOLoop->remove($_) for $t1, $t2, $timeout;
 
-my $error;
-$p1 = $class->new->resolve(1);
+$p1 = $class->new->resolve('success');
 $p2 = $class->new;
+my $error;
 $t = Mojo::IOLoop->timer(0.01 => sub { eval { $p1->get; 1 } or $error = $@; $p2->resolve(2) });
 $timeout = _timeout;
 is_deeply [$p2->get], [2], 'timer resolved';
 ok defined $error, 'exception in running event loop';
 like $error, qr/event loop is running/, 'right exception message';
 Mojo::IOLoop->remove($_) for $t, $timeout;
+
+my $loop = Mojo::IOLoop->new;
+$p = $class->new(ioloop => $loop);
+$t = $loop->timer(0.01 => sub { $p->resolve('success') });
+$timeout = _timeout($loop);
+is_deeply [$p->get], ['success'], 'secondary loop timer resolved';
+$loop->remove($_) for $t, $timeout;
+
+$p1 = $class->new(ioloop => $loop)->resolve('success');
+$p2 = $class->new;
+my $result;
+$t = Mojo::IOLoop->timer(0.01 => sub { $result = $p1->get; $p2->resolve(2) });
+$timeout = _timeout;
+my $loop_timeout = _timeout($loop);
+is_deeply [$p2->get], [2], 'timer resolved';
+is $result, 'success', 'secondary event loop timer resolved in running singleton loop';
+Mojo::IOLoop->remove($_) for $t, $timeout;
+$loop->remove($loop_timeout);
 
 done_testing;
