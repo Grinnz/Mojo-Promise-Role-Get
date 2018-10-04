@@ -11,20 +11,20 @@ Mojo::Promise::Role::Get - Wait for the results of a Mojo::Promise
   use Mojo::UserAgent;
   my $ua = Mojo::UserAgent->new;
 
-  # long way of writing $ua->get('http://example.com')
-  my $tx = $ua->get_p('http://example.com')->with_roles('+Get')->get;
+  # long way of writing $ua->get('http://example.com')->result
+  my $res = $ua->get_p('http://example.com')->with_roles('+Get')->get->result;
 
   # wait for multiple requests at once
-  my @txs = map { $_->[0] } Mojo::Promise->all(
+  my @responses = map { $_->[0]->result } Mojo::Promise->all(
     $ua->get_p('http://example.com'),
     $ua->get_p('https://www.google.com'),
-  )->with_roles('+Get')->get;
+  )->with_roles('Mojo::Promise::Role::Get')->get;
 
   # request with exception on timeout
   my $timeout = Mojo::Promise->new;
   Mojo::IOLoop->timer(1 => sub { $timeout->reject('Timed out!') });
-  my $tx = Mojo::Promise->race($ua->get_p('http://example.com'), $timeout)
-    ->with_roles('Mojo::Promise::Role::Get')->get;
+  my $res = Mojo::Promise->race($ua->get_p('http://example.com'), $timeout)
+    ->with_roles('Mojo::Promise::Role::Get')->get->result;
 
 =head1 DESCRIPTION
 
