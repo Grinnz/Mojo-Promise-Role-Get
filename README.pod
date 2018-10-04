@@ -1,26 +1,4 @@
-package Mojo::Promise::Role::Get;
-
-use Carp ();
-use Role::Tiny;
-
-our $VERSION = 'v0.1.0';
-
-requires qw(ioloop then wait);
-
-sub get {
-  my ($self) = @_;
-  Carp::croak "'get' cannot be called when the event loop is running" if $self->ioloop->is_running;
-  my (@result, $is_error);
-  $self->then(sub { @result = @_ }, sub { $is_error = 1; @result = @_ })->wait;
-  if ($is_error) {
-    my $exception = $result[0];
-    Carp::croak $exception unless ref $exception or $exception =~ m/\n$/;
-    die $exception;
-  }
-  return @result[0..$#result]; # be slightly more sensible in scalar context
-}
-
-1;
+=pod
 
 =head1 NAME
 
@@ -88,3 +66,5 @@ This is free software, licensed under:
 =head1 SEE ALSO
 
 L<Future>
+
+=cut
