@@ -54,8 +54,8 @@ L<Mojo::Promise::Role::Get> is a L<Mojo::Promise> L<role|Role::Tiny> that adds
 a L</"get"> method to facilitate the usage of asynchronous code in a
 synchronous manner, similar to L<Future/"get">.
 
-Note that like L<Future>, L</"get"> cannot retrieve results when the event loop
-is already running, as that can recurse into the event reactor. Unlike Future,
+Note: Like in Future, L</"get"> cannot retrieve results when the event loop is
+already running, as that can recurse into the event reactor. Unlike in Future,
 this is true even if the promise has already been resolved or rejected, because
 retrieving L<Mojo::Promise> results always requires running the event loop.
 
