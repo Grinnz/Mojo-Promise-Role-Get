@@ -50,8 +50,8 @@ Mojo::Promise::Role::Get - Wait for the results of a Mojo::Promise
 
 =head1 DESCRIPTION
 
-L<Mojo::Promise::Role::Get> is a L<Mojo::Promise> L<role|Role::Tiny> which adds
-a L</"get"> method that facilitates the usage of asynchronous code in a
+L<Mojo::Promise::Role::Get> is a L<Mojo::Promise> L<role|Role::Tiny> that adds
+a L</"get"> method to facilitate the usage of asynchronous code in a
 synchronous manner, similar to L<Future/"get">.
 
 =head1 METHODS
