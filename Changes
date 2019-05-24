@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+v0.1.2    2019-05-24 11:24:42 EDT
   - Avoid behavior broken in Mojolicious 8.15 in tests (#1)
 
 v0.1.1    2018-10-04 19:59:11 EDT
